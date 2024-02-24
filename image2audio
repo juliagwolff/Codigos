@@ -1,0 +1,50 @@
+%%
+%FONTE: https://github.com/DrSDR/Audio-Spectrogram-
+%Autor: profile DrSDR github
+%
+clear all
+close all
+
+h = 800;
+w = 600;
+%[filename, pathname, filterindex] = uigetfile('*.*','Pick a Image
+%file','C:\Users\rking\Pictures\Julia');%C:\Users\03056812909\Documents\MATLAB\eidors-v3.11-ng\eidors\imagens\4vazio_100k_60_nogrid.png'
+[filename, pathname, filterindex] = uigetfile('7saudavel_900k_0.png','C:\Users\03056812909\Documents\MATLAB\eidors-v3.11-ng\eidors\imagens\Testes_Som_21-02-2024'); %C:\Users\03056812909\Documents\MATLAB\eidors-v3.11-ng\eidors\imagens
+b = [pathname filename];
+x = imread(b);
+
+%
+x = rgb2gray(x);
+x = double(x);
+x = x / max( x(:) );
+x = x(end:-1:1,:);
+x = imresize(x,[h w] );
+
+pdata = 0.2 * randn(h,w);
+pdata = exp(1i * pdata);
+
+x = x .* pdata;
+
+x1 = conj( x(:,end:-1:2) );
+x = [x1 x];
+x = ifftshift(x,2);
+x = ifft(x,[],2);
+
+
+x = reshape(x.',1,[] );
+x = real(x);
+
+x = x / max(x);
+
+% plot(real(x))
+% hold on
+% plot(imag(x))
+% hold off
+
+
+audiowrite('C:\Users\03056812909\Documents\MATLAB\eidors-v3.11-ng\eidors\imagens\Testes_Som_21-02-2024\7saudavel_900k_0.wav',x,24000,'BitsPerSample',16);
+
+
+
+
+
