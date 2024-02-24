@@ -1,0 +1,18 @@
+filename = "C:\Users\03056812909\Documents\MATLAB\eidors-v3.11-ng\eidors\imagens\Testes_Som_21-02-2024\7saudavel_900k_0.wav"; %nome do arquivo
+
+[y,Fs] = audioread(filename);
+
+y=y(:,1);
+
+Ny = length(y);
+nsc = floor(Ny/200); %numero de partes que sera dividido o espectro (janela)
+nov = floor(nsc/10); %overlapp
+nff = max(2048,2^nextpow2(nsc)); %tamanho da fft
+
+[s,f,t] = spectrogram(y,hamming(nsc),nov,nff,Fs); %calcula o espectrograma
+
+%% plota a imagem do espectrograma
+sdb = mag2db(abs(s));
+imagesc(t,f/Fs,sdb);
+
+%saveas(imagesc, fullfile(FolderName, [EXP_NAME '.png']));
