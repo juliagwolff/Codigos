@@ -1,0 +1,83 @@
+%vhom = load('maca8e9_500k_100_HOM.txt');
+%vinh = load('maca8e9_500k_100_INH.txt');
+  
+meas_hom = data_struct.hom;
+meas_inh = data_struct.inh;
+ 
+vhom = meas_hom;
+vinh = meas_inh;
+ 
+%vhom = vhom';
+%vinh = vinh';
+ 
+ 
+% Model of 32x1 electrode belt
+cyl_shape = [2,32,0.3]; %height, radius, mesh refinement nao era para ser 12 ao inves de 2?
+            elec_pos = [32,1]; %8 electrodes at z = 2
+            elec_shape = [0.5,0,64]; %retangular electrodes (radius, 0, mesh refinement) %"0" significa modelo do eletrodo completo
+ 
+            [fmdl,mat_idx] = ng_mk_cyl_models(cyl_shape, elec_pos, ...
+                              elec_shape);
+ 
+                   
+options = {'no_meas_current','no_rotate_meas'}; %rotate_meas
+                          
+% Swisstom BBVet stimulation pattern
+%skip4 = {32,1,[0,5],[0,5],{'no_meas_current_next1'},1};
+[fmdl.stimulation,fmdl.meas_select] = mk_stim_patterns(32, 1, '{ad}','{ad}',options, 0.5);
+ 
+ 
+% 2D GREIT model
+clear opt;
+opt.imgsz = [64 64];%com 128 fica melhor mas demora mais
+opt.square_pixels = true;
+opt.noise_figure = 0.5; %ajustar, geralmente 0.3 ou 0.45, default greit 1
+opt.distr = 2; %deafult 0, era 2
+ 
+img = mk_image(fmdl,1);
+imdl2b= mk_GREIT_model(img, 0.2, [], opt);%ajustar o 0.2
+ 
+ 
+%{
+%"Square" electrode layout
+idx = reshape(1:32,2,[])';
+idx(2:2:end,:) = fliplr(idx(2:2:end,:));
+extraflip= [4:12]; % This belt was made slightly different
+idx(extraflip,:) = fliplr(idx(extraflip,:));
+fmdl.electrode(idx) = fmdl.electrode(:);
+%}
+ 
+ 
+%load horse-breathing3D2D.mat
+figure()
+img = inv_solve(imdl2b,vhom,vinh);
+img.calc_colours.ref_level = 0;
+imgng_matrix = show_slices(img,[inf,inf,2]);%ERA 2 PUS 4 %ver esse comando
+ 
+ 
+figure()
+imgg = show_fem(img,[1,1,0]);
+colorbar
+ 
+figure()
+myColorMap = jet(256);
+myColorMap(1, :) = [1 1 1];
+colormap(myColorMap);
+imgng = image(imgng_matrix);
+axis on
+
+%colorbar
+%eidors_colourbar( img )
+hh= eidors_colourbar( img )
+%img.calc_colours.ref_level =  %  centre of the colour scale
+  %img.calc_colours.clim      =  %  max diff from ref_level
+
+ %usage: eidors_colourbar( img ); % Set own tick positions
+  % img.eidors_colourbar.tick_vals = [-20:20]/10;
+
+figure()
+myColorMap = jet(256);
+myColorMap(1, :) = [1 1 1];
+colormap(myColorMap);
+imgng_s = image(imgng_matrix);
+axis off 
